@@ -2,6 +2,8 @@
 
 KOSM (read kay-OSM) is a toolkit for manipulating OSM data in kotlin.
 
+[![Build Status](https://travis-ci.org/adefarge/kosm.svg?branch=develop)](https://travis-ci.org/adefarge/kosm)
+
 ## Overview
 This project provides:
 - kosm-core: class definition for an OSM graph
