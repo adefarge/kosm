@@ -1,0 +1,6 @@
+description = 'KOSM DSL'
+
+dependencies {
+    api project(":kosm-core")
+    implementation project(":kosm-overpass")
+}

@@ -1,0 +1,9 @@
+rootProject.name = 'kosm'
+include ':kosm-core'
+include ':kosm-dsl'
+include ':kosm-overpass'
+
+
+project(':kosm-core').projectDir = "$rootDir/core" as File
+project(':kosm-dsl').projectDir = "$rootDir/dsl" as File
+project(':kosm-overpass').projectDir = "$rootDir/overpass" as File
