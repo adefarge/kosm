@@ -1,1 +1,5 @@
 description = 'KOSM Core Model'
+
+signing {
+    sign(publishing.publications["mavenJava"])
+}

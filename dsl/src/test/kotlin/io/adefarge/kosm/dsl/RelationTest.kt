@@ -12,7 +12,7 @@ class RelationTest {
 
         assertTrue(relation.nodesByRole.isEmpty())
         assertTrue(relation.waysByRole.isEmpty())
-        assertTrue(relation.relsByRole.isEmpty())
+        assertTrue(relation.relationsByRole.isEmpty())
         assertTrue(relation.tags.isEmpty())
     }
 
@@ -25,7 +25,7 @@ class RelationTest {
 
         assertTrue(relation.nodesByRole.isEmpty())
         assertTrue(relation.waysByRole.isEmpty())
-        assertTrue(relation.relsByRole.isEmpty())
+        assertTrue(relation.relationsByRole.isEmpty())
         assertTrue(relation.tags.isEmpty())
     }
 

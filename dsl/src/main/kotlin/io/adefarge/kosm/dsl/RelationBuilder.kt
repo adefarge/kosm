@@ -57,7 +57,7 @@ class RelationBuilder private constructor(
             id = id!!.toLong(),
             nodesByRole = nodesByRole,
             waysByRole = waysByRole,
-            relsByRole = emptyMap(),
+            relationsByRole = emptyMap(),
             tags = tags
         )
     }

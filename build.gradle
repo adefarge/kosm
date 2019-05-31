@@ -1,21 +1,23 @@
 plugins {
-    id 'maven'
-    id 'maven-publish'
-    id 'signing'
+    id "maven"
+    id "maven-publish"
+    id "signing"
+    id "net.saliman.properties" version "1.5.1"
     id "org.jetbrains.kotlin.jvm" version "1.3.30"
     id "org.jlleitschuh.gradle.ktlint" version "8.0.0"
 }
 
-description = 'KOSM an OSM toolkit for Kotlin'
+description = "A toolkit for manipulating OSM data in Kotlin"
 
 allprojects {
-    apply plugin: 'maven'
-    apply plugin: 'maven-publish'
-    apply plugin: 'kotlin'
+    apply plugin: "maven"
+    apply plugin: "maven-publish"
+    apply plugin: "signing"
+    apply plugin: "kotlin"
     apply plugin: "org.jlleitschuh.gradle.ktlint"
 
-    group = 'io.adefarge.kosm'
-    version = '1.0.0-SNAPSHOT'
+    group = "com.github.adefarge.kosm"
+    version = "1.0.0-SNAPSHOT"
 
     repositories {
         mavenCentral()
@@ -23,6 +25,64 @@ allprojects {
 }
 
 subprojects {
+    task sourcesJar(type: Jar) {
+        archiveClassifier.set("sources")
+        from sourceSets.main.allSource
+    }
+
+    task javadocJar(type: Jar) {
+        archiveClassifier.set("javadoc")
+        from javadoc
+    }
+
+    publishing {
+        repositories {
+            maven {
+                url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+
+                credentials {
+                    def ossrhUsername = project.hasProperty("ossrhUsername") ? project.property("ossrhUsername") : ""
+                    def ossrhPassword = project.hasProperty("ossrhPassword") ? project.property("ossrhPassword") : ""
+                    username = ossrhUsername
+                    password = ossrhPassword
+                }
+            }
+        }
+
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+                artifact sourcesJar
+                artifact javadocJar
+
+                pom {
+                    name = "${project.group}:${project.name}"
+                    description = "Module ${project.name} of KOSM"
+                    url = "https://github.com/adefarge/kosm"
+
+                    licenses {
+                        license {
+                            name = "MIT License"
+                            url = "https://opensource.org/licenses/mit-license.php"
+                        }
+                    }
+                    developers {
+                        developer {
+                            id = "adefarge"
+                            name = "Adrien Defarge"
+                            email = "adrien.defarge@gmail.com"
+                        }
+                    }
+                    scm {
+                        connection = "scm:git:git://git@github.com:adefarge/kosm.git"
+                        developerConnection = "scm:git:ssh://git@github.com:adefarge/kosm.git"
+                        url = "https://github.com/adefarge/kosm"
+                    }
+                }
+            }
+        }
+    }
+
     compileKotlin {
         kotlinOptions.jvmTarget = "1.8"
     }

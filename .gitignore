@@ -4,12 +4,6 @@
 **/build
 **/out
 **/.attach_pid*
-flame-graph.svg
 *.swp
-bin/env
 
-data/*
-!data/*.oql
-
-# Gatling folder
-results
+gradle-local.properties

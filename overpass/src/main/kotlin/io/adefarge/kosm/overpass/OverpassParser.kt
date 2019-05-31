@@ -100,7 +100,7 @@ object OverpassParser {
             .forEach { relation ->
                 val rel = relsById.getValue(relation.id)
 
-                rel.relsByRole = relation.members
+                rel.relationsByRole = relation.members
                     .filter { it.type == "relation" }
                     .groupBy { it.role }
                     .map { (role, list) ->

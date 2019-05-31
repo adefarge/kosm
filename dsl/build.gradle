@@ -3,3 +3,7 @@ description = 'KOSM DSL'
 dependencies {
     api project(":kosm-core")
 }
+
+signing {
+    sign(publishing.publications["mavenJava"])
+}
