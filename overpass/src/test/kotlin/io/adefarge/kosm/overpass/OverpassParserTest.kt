@@ -8,6 +8,6 @@ class OverpassParserTest {
     fun `it works`() {
         val uri = this.javaClass.getResource("/sample.json").toURI()
         val file = File(uri)
-        val graph = OverpassParser.parseJsonFile(file)
+        OverpassParser.parseJsonFile(file)
     }
 }

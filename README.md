@@ -104,17 +104,21 @@ println(graph.ways.first().tags)
 Usage:
 ```kotlin
 // expect a json file with an "elements" field with the data
-val graph1 = OverpassParser.parseJsonFile(file)
+val graphFromFile = OverpassParser.parseJsonFile(file)
+val graphFromFile2 = osmGraph(file)
+val graphFromFileInResource = osmGraph("path/in/resources.json")
 
 // same thing with an input stream instead of a file
 val graph2 = OverpassParser.parseJsonInputStream(inputStream)
 
 // expect the json node to contains the nodes, ways and relations at its root
-val graph3 = OverpassParser.parseJsonInputStream(inputStream)
+val graph3 = OverpassParser.parseJsonNode(inputStream)
 ```
 
 ## Build and test
 The project runs with gradle using a wrapper.
+
+Run tests, build and check style using ktlint:
 ```
 ./gradlew build
 ```

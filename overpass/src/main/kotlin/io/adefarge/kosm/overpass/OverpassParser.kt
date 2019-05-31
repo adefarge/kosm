@@ -10,6 +10,16 @@ import io.adefarge.kosm.core.Way
 import java.io.File
 import java.io.InputStream
 
+fun osmGraph(jsonResource: String): OsmGraph {
+    val uri = object {}.javaClass.getResource("/$jsonResource").toURI()
+    val file = File(uri)
+    return osmGraph(file)
+}
+
+fun osmGraph(json: File): OsmGraph {
+    return OverpassParser.parseJsonFile(json)
+}
+
 object OverpassParser {
     private val mapper: ObjectMapper = ObjectMapper().registerKotlinModule()
 

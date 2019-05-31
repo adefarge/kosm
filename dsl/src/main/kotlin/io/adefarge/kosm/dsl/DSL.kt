@@ -4,18 +4,6 @@ import io.adefarge.kosm.core.Node
 import io.adefarge.kosm.core.OsmGraph
 import io.adefarge.kosm.core.Relation
 import io.adefarge.kosm.core.Way
-import io.adefarge.kosm.overpass.OverpassParser
-import java.io.File
-
-fun osmGraph(jsonResource: String): OsmGraph {
-    val uri = object {}.javaClass.getResource("/$jsonResource").toURI()
-    val file = File(uri)
-    return osmGraph(file)
-}
-
-fun osmGraph(json: File): OsmGraph {
-    return OverpassParser.parseJsonFile(json)
-}
 
 inline fun osmGraph(init: OsmGraphBuilder.() -> Unit): OsmGraph {
     return OsmGraphBuilder()

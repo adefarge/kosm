@@ -30,8 +30,8 @@ class RelationBuilder private constructor(
     private val defaultRole: RoleBuilder
 ) : BuilderWithTagsAndId<Relation>(), NodesBuilderTrait by defaultRole, WaysBuilderTrait by defaultRole {
 
-    constructor(nodeFactory: OsmFactory<Node>, wayFactory: OsmFactory<Way>)
-            : this(nodeFactory, wayFactory, RoleBuilder(nodeFactory, wayFactory))
+    constructor(nodeFactory: OsmFactory<Node>, wayFactory: OsmFactory<Way>) :
+            this(nodeFactory, wayFactory, RoleBuilder(nodeFactory, wayFactory))
 
     private val roles = mutableMapOf<String, RoleBuilder>()
         .apply { set("", defaultRole) }
