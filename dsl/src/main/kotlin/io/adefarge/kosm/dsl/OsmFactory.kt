@@ -2,68 +2,100 @@ package io.adefarge.kosm.dsl
 
 import io.adefarge.kosm.core.Node
 
-open class OsmFactory<T> {
+sealed class Ref<T>(protected val factory: OsmFactory<T, *>) {
+    abstract fun deref(): T
+}
+
+private class BuilderRef<T>(private val index: Int, factory: OsmFactory<T, *>) : Ref<T>(factory) {
+    override fun deref(): T = factory.derefAnonymous(index)
+}
+
+private class IdRef<T>(private val id: Long, factory: OsmFactory<T, *>) : Ref<T>(factory) {
+    override fun deref(): T = factory.deref(id)
+}
+
+open class OsmFactory<T, B : BuilderWithTagsAndId<T>>(private val builderSupplier: () -> B) {
     protected val objects = mutableMapOf<Long, T>()
-    private val waitingForId = mutableListOf<BuilderWithTagsAndId<T>>()
+    private val buildersById = mutableMapOf<Long, B>()
+    private val anonymousBuilders = mutableListOf<B>()
+    private val anonymousIdCorrespondenceTable = mutableMapOf<Int, Long>()
 
     private fun generateId(): Long {
         var id = 0L
         while (true) {
-            if (id !in objects.keys) {
+            if (id !in objects.keys && id !in buildersById.keys) {
                 return id
             }
             id++
         }
     }
 
-    abstract inner class Ref {
-        abstract fun deref(): T
+    fun derefAnonymous(index: Int): T {
+        val osmId = anonymousIdCorrespondenceTable[index]
+            ?: return generateAnonymous(index)
+
+        return objects[osmId]!!
     }
 
-    private inner class BuilderRef(private val index: Int) : Ref() {
-        override fun deref() = waitingForId.getOrNull(index)
-            ?.let { generate(it) }
-            ?: throw IllegalStateException("No builder with such index $index")
+    private fun generateAnonymous(index: Int): T {
+        val builder = anonymousBuilders.getOrNull(index)
+            ?: throw IllegalStateException("No anonymous builder with such index $index")
+
+        val id = generateId()
+        val obj = builder.build(id)
+        objects[id] = obj
+        anonymousIdCorrespondenceTable[index] = id
+        return obj
     }
 
-    private inner class IdRef(private val value: Long) : Ref() {
-        override fun deref() = this@OsmFactory.deref(value)
-    }
-
-    private fun generate(builder: BuilderWithTagsAndId<T>): T {
-        if (builder.id == null) {
-            builder.id = generateId()
-        }
-
-        return builder.build().also {
-            objects[builder.id!!.toLong()] = it
-        }
-    }
-
-    protected open fun deref(id: Long): T {
+    fun deref(id: Long): T {
         return objects[id]
-            ?: throw IllegalStateException("No object with id $id")
+            ?: generate(id)
+            ?: fallbackOnMiss(id)
     }
 
-    fun getRef(builder: BuilderWithTagsAndId<T>): Ref {
-        val id = builder.id?.toLong()
-        if (id != null) {
-            objects.put(id, builder.build())
-                ?.let { throw IllegalStateException("Multiple object with id $id") }
-            return IdRef(id)
-        }
+    private fun generate(id: Long): T? {
+        val builder = buildersById[id] ?: return null
 
-        val ref = BuilderRef(waitingForId.size)
-        waitingForId += builder
+        val obj = builder.build(id)
+        objects[id] = obj
+        return obj
+    }
+
+    protected open fun fallbackOnMiss(id: Long): T {
+        throw IllegalStateException("No object with id $id")
+    }
+
+    fun getRef(id: Number, init: B.() -> Unit): Ref<T> {
+        val idAsLong = id.toLong()
+        val builder = buildersById.getOrPut(idAsLong, builderSupplier)
+        builder.apply(init)
+
+        return IdRef(idAsLong, this)
+    }
+
+    fun getRef(init: B.() -> Unit): Ref<T> {
+        val ref = BuilderRef(anonymousBuilders.size, this)
+        anonymousBuilders += builderSupplier.invoke().apply(init)
         return ref
     }
 
-    fun getRef(id: Number): Ref {
-        return IdRef(id.toLong())
+    fun getRef(id: Number): Ref<T> {
+        return IdRef(id.toLong(), this)
     }
 
-    fun generateAll() {
-        waitingForId.forEach { generate(it) }
+    fun ensureAllIsGenerated() {
+        for (index in anonymousBuilders.indices) {
+            if (index !in anonymousIdCorrespondenceTable) {
+                generateAnonymous(index)
+            }
+        }
+
+        for (id in buildersById.keys) {
+            if (id !in objects) {
+                generate(id)
+            }
+        }
     }
 
     fun getAll(): List<T> {
@@ -71,12 +103,8 @@ open class OsmFactory<T> {
     }
 }
 
-class NodeFactory : OsmFactory<Node>() {
-    override fun deref(id: Long): Node {
-        return objects[id]
-            ?: NodeBuilder()
-                .apply { this.id = id }
-                .build()
-                .also { objects[id] = it }
+class NodeFactory<B : BuilderWithTagsAndId<Node>>(builderSupplier: () -> B) : OsmFactory<Node, B>(builderSupplier) {
+    override fun fallbackOnMiss(id: Long): Node {
+        return NodeBuilder().build(id).also { objects[id] = it }
     }
 }

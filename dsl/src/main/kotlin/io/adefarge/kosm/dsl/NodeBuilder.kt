@@ -7,28 +7,22 @@ import kotlin.math.atan
 import kotlin.random.asKotlinRandom
 
 interface NodesBuilderTrait {
-    val nodeFactory: OsmFactory<Node>
+    val nodeFactory: OsmFactory<Node, NodeBuilder>
 
-    fun registerNodeRef(ref: OsmFactory<Node>.Ref) {}
+    fun registerNodeRef(ref: Ref<Node>) {}
 
-    fun node(id: Number, init: NodeBuilder.() -> Unit): OsmFactory<Node>.Ref {
-        return nodeFactory.getRef(
-            NodeBuilder().apply {
-                init()
-                this.id = id
-            }
-        ).also { registerNodeRef(it) }
-    }
-
-    fun node(init: NodeBuilder.() -> Unit): OsmFactory<Node>.Ref {
-        return nodeFactory
-            .getRef(NodeBuilder().apply(init))
+    fun node(id: Number, init: NodeBuilder.() -> Unit): Ref<Node> {
+        return nodeFactory.getRef(id, init)
             .also { registerNodeRef(it) }
     }
 
-    fun node(id: Number): OsmFactory<Node>.Ref {
-        return nodeFactory
-            .getRef(id)
+    fun node(init: NodeBuilder.() -> Unit): Ref<Node> {
+        return nodeFactory.getRef(init)
+            .also { registerNodeRef(it) }
+    }
+
+    fun node(id: Number): Ref<Node> {
+        return nodeFactory.getRef(id)
             .also { registerNodeRef(it) }
     }
 }
@@ -62,7 +56,7 @@ class NodeBuilder : BuilderWithTagsAndId<Node>() {
         lon = random.nextDouble(lonRange.start, lonRange.endInclusive)
     }
 
-    override fun build(): Node {
+    override fun build(id: Long): Node {
         val lat: Double
         val lon: Double
 
@@ -75,7 +69,7 @@ class NodeBuilder : BuilderWithTagsAndId<Node>() {
         }
 
         return Node(
-            id = id!!.toLong(),
+            id = id,
             lat = lat,
             lon = lon,
             tags = tags

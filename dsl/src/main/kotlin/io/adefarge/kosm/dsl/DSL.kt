@@ -12,43 +12,35 @@ inline fun osmGraph(init: OsmGraphBuilder.() -> Unit): OsmGraph {
 }
 
 fun node(init: NodeBuilder.() -> Unit): Node {
-    return NodeBuilder().apply {
-        id = 0
-        init()
-    }.build()
+    return NodeBuilder().apply(init).build(0)
 }
 
 fun way(init: WayBuilder.() -> Unit): Way {
-    val nodeFactory = NodeFactory()
+    val nodeFactory = NodeFactory(builderSupplier = { NodeBuilder() })
+
     return WayBuilder(nodeFactory)
-        .apply {
-            id = 0
-            init()
-        }
-        .build()
+        .apply(init)
+        .build(0)
 }
 
 fun relation(init: RelationBuilder.() -> Unit): Relation {
-    val nodeFactory = NodeFactory()
-    val wayFactory = OsmFactory<Way>()
+    val nodeFactory = NodeFactory(builderSupplier = { NodeBuilder() })
+    val wayFactory = OsmFactory(builderSupplier = { WayBuilder(nodeFactory) })
+
     return RelationBuilder(nodeFactory, wayFactory)
-        .apply {
-            id = 0
-            init()
-        }
-        .build()
+        .apply(init)
+        .build(0)
 }
 
-class OsmGraphBuilder : Builder<OsmGraph>, WaysBuilderTrait,
-    NodesBuilderTrait, RelationsBuilderTrait {
-    override val nodeFactory = NodeFactory()
-    override val wayFactory = OsmFactory<Way>()
-    override val relationFactory = OsmFactory<Relation>()
+class OsmGraphBuilder : Builder<OsmGraph>, WaysBuilderTrait, NodesBuilderTrait, RelationsBuilderTrait {
+    override val nodeFactory = NodeFactory(builderSupplier = { NodeBuilder() })
+    override val wayFactory = OsmFactory(builderSupplier = { WayBuilder(nodeFactory) })
+    override val relationFactory = OsmFactory(builderSupplier = { RelationBuilder(nodeFactory, wayFactory) })
 
     override fun build(): OsmGraph {
-        nodeFactory.generateAll()
-        wayFactory.generateAll()
-        relationFactory.generateAll()
+        nodeFactory.ensureAllIsGenerated()
+        wayFactory.ensureAllIsGenerated()
+        relationFactory.ensureAllIsGenerated()
 
         return OsmGraph(
             nodes = nodeFactory.getAll(),

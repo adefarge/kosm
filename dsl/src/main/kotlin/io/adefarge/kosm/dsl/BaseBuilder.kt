@@ -4,8 +4,7 @@ interface Builder<out T> {
     fun build(): T
 }
 
-abstract class BuilderWithTagsAndId<out T> : Builder<T> {
-    var id: Number? = null
+abstract class BuilderWithTagsAndId<out T> {
     protected var tags: MutableMap<String, String> = mutableMapOf()
 
     inline fun tags(init: TagsBuilder.() -> Unit) {
@@ -22,6 +21,8 @@ abstract class BuilderWithTagsAndId<out T> : Builder<T> {
     fun merge(otherMap: Map<String, String>) {
         otherMap.forEach { (key, value) -> tags[key] = value }
     }
+
+    abstract fun build(id: Long): T
 }
 
 class TagsBuilder : Builder<Map<String, String>> {

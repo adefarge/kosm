@@ -2,6 +2,7 @@ package io.adefarge.kosm.dsl
 
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -31,7 +32,7 @@ class RelationTest {
 
     @Test
     fun `can instantiate a relation with id`() {
-        val graph = osmGraph { relation { id = 1 } }
+        val graph = osmGraph { relation(1) {} }
 
         val relation = graph.relations.first()
         assertEquals(1, relation.id)
@@ -58,7 +59,7 @@ class RelationTest {
     fun `can instantiate a relation with ways and nodes`() {
         val graph = osmGraph {
             relation {
-                way { id = 1 }
+                way(1) { }
                 way { nodes(0, 1) }
                 node(0)
                 node(1) { randomCoordinate() }
@@ -117,5 +118,52 @@ class RelationTest {
         val relation = graph.relations.first()
         assertEquals(1, relation.waysByRole.size)
         assertEquals(3, relation.waysByRole[""]?.size)
+    }
+
+    @Test
+    fun `can merge multiple declaration of relations`() {
+        val graph = osmGraph {
+            relation(0) {
+                tags {
+                    "a" to "b"
+                }
+                node(0)
+                node(2)
+            }
+
+            relation(0) {
+                tags { "c" to "d" }
+                node(3)
+            }
+        }
+
+        assertEquals(1, graph.relations.size)
+        val relation = graph.relations.first()
+
+        assertEquals(0, relation.id)
+        assertEquals(listOf(0, 2, 3), relation.nodesByRole.getValue("").map { it.id.toInt() })
+        assertEquals(mapOf("a" to "b", "c" to "d"), relation.tags)
+    }
+
+    @Test
+    fun `can declare multiple relations without overwriting them`() {
+        val graph = osmGraph {
+            relation { tags { "decl" to "0" } }
+            relation(1) { tags { "decl" to "1" } }
+            relation { tags { "decl" to "2" } }
+        }
+
+        assertEquals(3, graph.relations.size)
+        assertEquals(1, graph.relations.count { it.id == 1L })
+        val relation1 = graph.relations.first { it.id == 1L }
+        assertEquals(mapOf("decl" to "1"), relation1.tags)
+
+        val anonymousRelations = graph.relations.filter { it.id != 1L }
+        assertEquals(2, anonymousRelations.size)
+        val anon1 = anonymousRelations.first()
+        assertEquals(1, anon1.tags.size)
+        val anon2 = anonymousRelations.last()
+        assertEquals(1, anon2.tags.size)
+        assertNotEquals(anon1.tags, anon2.tags)
     }
 }

@@ -2,6 +2,7 @@ package io.adefarge.kosm.dsl
 
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 class WayTest {
@@ -26,7 +27,7 @@ class WayTest {
 
     @Test
     fun `can instantiate a way with id`() {
-        val graph = osmGraph { way { id = 1 } }
+        val graph = osmGraph { way(1) { } }
 
         val way = graph.ways.first()
 
@@ -105,5 +106,51 @@ class WayTest {
 
         assertEquals("0", graph.nodes.first { it.id == 0L }.tags["node"])
         assertEquals("1", graph.nodes.first { it.id == 1L }.tags["node"])
+    }
+
+    @Test
+    fun `can merge multiple declaration of ways`() {
+        val graph = osmGraph {
+            way(0) {
+                tags {
+                    "a" to "b"
+                }
+                nodes(0, 1, 2)
+            }
+
+            way(0) {
+                tags { "c" to "d" }
+                nodes(2, 3, 4)
+            }
+        }
+
+        assertEquals(1, graph.ways.size)
+        val way = graph.ways.first()
+
+        assertEquals(0, way.id)
+        assertEquals(listOf(2, 3, 4), way.nodes.map { it.id.toInt() })
+        assertEquals(mapOf("a" to "b", "c" to "d"), way.tags)
+    }
+
+    @Test
+    fun `can declare multiple ways without overwriting them`() {
+        val graph = osmGraph {
+            way { tags { "decl" to "0" } }
+            way(1) { tags { "decl" to "1" } }
+            way { tags { "decl" to "2" } }
+        }
+
+        assertEquals(3, graph.ways.size)
+        assertEquals(1, graph.ways.count { it.id == 1L })
+        val way1 = graph.ways.first { it.id == 1L }
+        assertEquals(mapOf("decl" to "1"), way1.tags)
+
+        val anonymousWays = graph.ways.filter { it.id != 1L }
+        assertEquals(2, anonymousWays.size)
+        val anon1 = anonymousWays.first()
+        assertEquals(1, anon1.tags.size)
+        val anon2 = anonymousWays.last()
+        assertEquals(1, anon2.tags.size)
+        assertNotEquals(anon1.tags, anon2.tags)
     }
 }

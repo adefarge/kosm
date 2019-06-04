@@ -4,27 +4,30 @@ import io.adefarge.kosm.core.Node
 import io.adefarge.kosm.core.Way
 
 interface WaysBuilderTrait {
-    val nodeFactory: OsmFactory<Node>
-    val wayFactory: OsmFactory<Way>
+    val wayFactory: OsmFactory<Way, WayBuilder>
 
-    fun registerWayRef(ref: OsmFactory<Way>.Ref) {}
+    fun registerWayRef(ref: Ref<Way>) {}
 
-    fun way(id: Number): OsmFactory<Way>.Ref {
+    fun way(id: Number): Ref<Way> {
         return wayFactory.getRef(id)
             .also { registerWayRef(it) }
     }
 
-    fun way(init: WayBuilder.() -> Unit): OsmFactory<Way>.Ref {
-        return wayFactory
-            .getRef(WayBuilder(nodeFactory).apply(init))
+    fun way(id: Number, init: WayBuilder.() -> Unit): Ref<Way> {
+        return wayFactory.getRef(id, init)
+            .also { registerWayRef(it) }
+    }
+
+    fun way(init: WayBuilder.() -> Unit): Ref<Way> {
+        return wayFactory.getRef(init)
             .also { registerWayRef(it) }
     }
 }
 
 class WayBuilder(
-    private val nodeFactory: OsmFactory<Node>
+    private val nodeFactory: OsmFactory<Node, NodeBuilder>
 ) : BuilderWithTagsAndId<Way>() {
-    private var nodes: List<OsmFactory<Node>.Ref> = emptyList()
+    private var nodes: List<Ref<Node>> = emptyList()
 
     fun nodes(vararg ids: Int) {
         nodes = ids.map { nodeFactory.getRef(it) }
@@ -34,9 +37,9 @@ class WayBuilder(
         nodes = InWayNodeBuilder(nodeFactory).apply(init).build()
     }
 
-    override fun build(): Way {
+    override fun build(id: Long): Way {
         return Way(
-            id = id!!.toLong(),
+            id = id,
             nodes = nodes.map { it.deref() },
             tags = tags
         )
@@ -44,14 +47,14 @@ class WayBuilder(
 }
 
 class InWayNodeBuilder(
-    override val nodeFactory: OsmFactory<Node>
-) : Builder<List<OsmFactory<Node>.Ref>>,
+    override val nodeFactory: OsmFactory<Node, NodeBuilder>
+) : Builder<List<Ref<Node>>>,
     NodesBuilderTrait {
-    private val nodes = mutableListOf<OsmFactory<Node>.Ref>()
+    private val nodes = mutableListOf<Ref<Node>>()
 
-    override fun registerNodeRef(ref: OsmFactory<Node>.Ref) {
+    override fun registerNodeRef(ref: Ref<Node>) {
         nodes += ref
     }
 
-    override fun build(): List<OsmFactory<Node>.Ref> = nodes
+    override fun build(): List<Ref<Node>> = nodes
 }

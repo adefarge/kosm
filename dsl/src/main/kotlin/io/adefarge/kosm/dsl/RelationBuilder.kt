@@ -5,32 +5,39 @@ import io.adefarge.kosm.core.Relation
 import io.adefarge.kosm.core.Way
 
 interface RelationsBuilderTrait {
-    val nodeFactory: OsmFactory<Node>
-    val wayFactory: OsmFactory<Way>
-    val relationFactory: OsmFactory<Relation>
+    val nodeFactory: OsmFactory<Node, NodeBuilder>
+    val wayFactory: OsmFactory<Way, WayBuilder>
+    val relationFactory: OsmFactory<Relation, RelationBuilder>
 
-    fun registerRelRef(ref: OsmFactory<Relation>.Ref) {}
+    fun registerRelationRef(ref: Ref<Relation>) {}
 
-    fun relation(init: RelationBuilder.() -> Unit): OsmFactory<Relation>.Ref {
-        return relationFactory.getRef(
-            RelationBuilder(nodeFactory, wayFactory)
-                .apply(init)
-        ).also { registerRelRef(it) }
+    fun relation(id: Number, init: RelationBuilder.() -> Unit): Ref<Relation> {
+        return relationFactory.getRef(id, init)
+            .also { registerRelationRef(it) }
     }
 
-    fun rel(init: RelationBuilder.() -> Unit): OsmFactory<Relation>.Ref {
+    fun rel(id: Number, init: RelationBuilder.() -> Unit): Ref<Relation> {
+        return relation(id, init)
+    }
+
+    fun relation(init: RelationBuilder.() -> Unit): Ref<Relation> {
+        return relationFactory.getRef(init)
+            .also { registerRelationRef(it) }
+    }
+
+    fun rel(init: RelationBuilder.() -> Unit): Ref<Relation> {
         return relation(init)
     }
 }
 
 // TODO impl relations in relation but care about cycles
 class RelationBuilder private constructor(
-    override val nodeFactory: OsmFactory<Node>,
-    override val wayFactory: OsmFactory<Way>,
+    override val nodeFactory: OsmFactory<Node, NodeBuilder>,
+    override val wayFactory: OsmFactory<Way, WayBuilder>,
     private val defaultRole: RoleBuilder
 ) : BuilderWithTagsAndId<Relation>(), NodesBuilderTrait by defaultRole, WaysBuilderTrait by defaultRole {
 
-    constructor(nodeFactory: OsmFactory<Node>, wayFactory: OsmFactory<Way>) :
+    constructor(nodeFactory: OsmFactory<Node, NodeBuilder>, wayFactory: OsmFactory<Way, WayBuilder>) :
             this(nodeFactory, wayFactory, RoleBuilder(nodeFactory, wayFactory))
 
     private val roles = mutableMapOf<String, RoleBuilder>()
@@ -42,7 +49,7 @@ class RelationBuilder private constructor(
             .apply(init)
     }
 
-    override fun build(): Relation {
+    override fun build(id: Long): Relation {
         val waysByRole = mutableMapOf<String, List<Way>>()
         val nodesByRole = mutableMapOf<String, List<Node>>()
         for ((role, roleBuilder) in roles) {
@@ -54,7 +61,7 @@ class RelationBuilder private constructor(
         }
 
         return Relation(
-            id = id!!.toLong(),
+            id = id,
             nodesByRole = nodesByRole,
             waysByRole = waysByRole,
             relationsByRole = emptyMap(),
@@ -66,19 +73,19 @@ class RelationBuilder private constructor(
 data class RoleMembers(val nodes: List<Node>, val ways: List<Way>, val rels: List<Relation>)
 
 class RoleBuilder(
-    override val nodeFactory: OsmFactory<Node>,
-    override val wayFactory: OsmFactory<Way>
+    override val nodeFactory: OsmFactory<Node, NodeBuilder>,
+    override val wayFactory: OsmFactory<Way, WayBuilder>
 ) : Builder<RoleMembers>, NodesBuilderTrait,
     WaysBuilderTrait {
 
-    private val nodes = mutableListOf<OsmFactory<Node>.Ref>()
-    private val ways = mutableListOf<OsmFactory<Way>.Ref>()
+    private val nodes = mutableListOf<Ref<Node>>()
+    private val ways = mutableListOf<Ref<Way>>()
 
-    override fun registerNodeRef(ref: OsmFactory<Node>.Ref) {
+    override fun registerNodeRef(ref: Ref<Node>) {
         nodes += ref
     }
 
-    override fun registerWayRef(ref: OsmFactory<Way>.Ref) {
+    override fun registerWayRef(ref: Ref<Way>) {
         ways += ref
     }
 

@@ -31,16 +31,6 @@ class NodeTest {
     @Test
     fun `can instantiate a node with id`() {
         val graph = osmGraph {
-            node { id = 1 }
-        }
-
-        val node = graph.nodes.first()
-        assertEquals(1, node.id)
-    }
-
-    @Test
-    fun `can instantiate a node with id using another way`() {
-        val graph = osmGraph {
             node(1) {}
         }
 
@@ -118,5 +108,53 @@ class NodeTest {
         assertNotEquals(nodeDefined0.id, nodeDefined1.id)
         assertEquals(1, nodeDefined2.id)
         assertEquals(0, nodeDefined3.id)
+    }
+
+    @Test
+    fun `can merge multiple declaration of nodes`() {
+        val graph = osmGraph {
+            node(0) {
+                tags {
+                    "a" to "b"
+                }
+                lat = 10.0
+                lon = 20.0
+            }
+
+            node(0) {
+                tags { "c" to "d" }
+                lon = 15.0
+            }
+        }
+
+        assertEquals(1, graph.nodes.size)
+        val node = graph.nodes.first()
+
+        assertEquals(0, node.id)
+        assertEquals(10.0, node.lat)
+        assertEquals(15.0, node.lon)
+        assertEquals(mapOf("a" to "b", "c" to "d"), node.tags)
+    }
+
+    @Test
+    fun `can declare multiple nodes without overwriting them`() {
+        val graph = osmGraph {
+            node { tags { "decl" to "0" } }
+            node(1) { tags { "decl" to "1" } }
+            node { tags { "decl" to "2" } }
+        }
+
+        assertEquals(3, graph.nodes.size)
+        assertEquals(1, graph.nodes.count { it.id == 1L })
+        val node1 = graph.nodes.first { it.id == 1L }
+        assertEquals(mapOf("decl" to "1"), node1.tags)
+
+        val anonymousNodes = graph.nodes.filter { it.id != 1L }
+        assertEquals(2, anonymousNodes.size)
+        val anon1 = anonymousNodes.first()
+        assertEquals(1, anon1.tags.size)
+        val anon2 = anonymousNodes.last()
+        assertEquals(1, anon2.tags.size)
+        assertNotEquals(anon1.tags, anon2.tags)
     }
 }
