@@ -11,22 +11,13 @@ interface RelationsBuilderTrait {
 
     fun registerRelationRef(ref: Ref<Relation>) {}
 
-    fun relation(id: Number, init: RelationBuilder.() -> Unit): Ref<Relation> {
+    fun relation(id: Number? = null, init: RelationBuilder.() -> Unit): Ref<Relation> {
         return relationFactory.getRef(id, init)
             .also { registerRelationRef(it) }
     }
 
-    fun rel(id: Number, init: RelationBuilder.() -> Unit): Ref<Relation> {
+    fun rel(id: Number? = null, init: RelationBuilder.() -> Unit): Ref<Relation> {
         return relation(id, init)
-    }
-
-    fun relation(init: RelationBuilder.() -> Unit): Ref<Relation> {
-        return relationFactory.getRef(init)
-            .also { registerRelationRef(it) }
-    }
-
-    fun rel(init: RelationBuilder.() -> Unit): Ref<Relation> {
-        return relation(init)
     }
 }
 

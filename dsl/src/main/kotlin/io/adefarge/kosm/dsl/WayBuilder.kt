@@ -13,13 +13,8 @@ interface WaysBuilderTrait {
             .also { registerWayRef(it) }
     }
 
-    fun way(id: Number, init: WayBuilder.() -> Unit): Ref<Way> {
+    fun way(id: Number? = null, init: WayBuilder.() -> Unit): Ref<Way> {
         return wayFactory.getRef(id, init)
-            .also { registerWayRef(it) }
-    }
-
-    fun way(init: WayBuilder.() -> Unit): Ref<Way> {
-        return wayFactory.getRef(init)
             .also { registerWayRef(it) }
     }
 }

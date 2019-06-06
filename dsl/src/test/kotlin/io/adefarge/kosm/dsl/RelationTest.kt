@@ -1,5 +1,6 @@
 package io.adefarge.kosm.dsl
 
+import io.adefarge.kosm.core.relation
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
@@ -155,7 +156,7 @@ class RelationTest {
 
         assertEquals(3, graph.relations.size)
         assertEquals(1, graph.relations.count { it.id == 1L })
-        val relation1 = graph.relations.first { it.id == 1L }
+        val relation1 = graph.relation(1)
         assertEquals(mapOf("decl" to "1"), relation1.tags)
 
         val anonymousRelations = graph.relations.filter { it.id != 1L }

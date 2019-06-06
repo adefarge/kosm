@@ -1,5 +1,6 @@
 package io.adefarge.kosm.dsl
 
+import io.adefarge.kosm.core.node
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
@@ -146,7 +147,7 @@ class NodeTest {
 
         assertEquals(3, graph.nodes.size)
         assertEquals(1, graph.nodes.count { it.id == 1L })
-        val node1 = graph.nodes.first { it.id == 1L }
+        val node1 = graph.node(1)
         assertEquals(mapOf("decl" to "1"), node1.tags)
 
         val anonymousNodes = graph.nodes.filter { it.id != 1L }

@@ -1,6 +1,6 @@
 # KOSM
 
-KOSM (read kay-OSM) is a toolkit for manipulating OSM data in kotlin.
+KOSM (read kay-OSM) is a toolkit for manipulating OpenStreetMap (OSM) data in kotlin.
 
 [![Build Status](https://travis-ci.org/adefarge/kosm.svg?branch=develop)](https://travis-ci.org/adefarge/kosm)
 
@@ -20,11 +20,10 @@ Ids are optional. If a node is not defined, a blank one will be generated.
 Node coordinates are also optional.
 ```kotlin
 val graph = osmGraph {
-    node {
-        id = 1
+    node(1) {
         tags { "door" to "yes" }
     }
-    
+
     way {
         nodes(0, 1, 2)
         tags {
@@ -32,17 +31,16 @@ val graph = osmGraph {
             "level" to "1"
         }
     }
-    way {
-        id = 2
+    way(2) {
         nodes(10, 2, 11)
     }
-    
+
     relation {
         node(1)
         way(2)
         way { tags { "tag" to "value" } }
     }
-    
+
     relation {
         role("role1") {
             node(0)
@@ -73,6 +71,43 @@ val graph = osmGraph {
 }
 ```
 
+Node coordinates can also be specified using an ascii grid.
+```kotlin
+val graph = osmGraph {
+    nodesFromGrid(cellWidth = 5, cellHeight = 10) {
+        // Non digit characters are ignored and are just there for legibility
+        // (they refer to the ways)
+        """
+            #             4
+            #             |
+            #     10 *****3********** 11
+            #     *       |           *
+            #     *       |           *
+            # 0 --1------ 2           *
+            #     *                   *
+            #     13 **************** 12
+            #
+        """.trimMargin("#")
+    }
+    node(1) { tags { "door" to "yes" } }
+    node(3) { tags { "door" to "yes" } }
+
+    way {
+        nodes(0, 1, 2, 3, 4)
+        tags {
+            "highway" to "pedestrian"
+        }
+    }
+
+    way {
+        nodes(10, 11, 12, 13, 10)
+        tags {
+            "indoor" to "room"
+        }
+    }
+}
+```
+
 See tests for a more complete set of functionality.
 
 The DSL can easily be extended by using extension functions for
@@ -88,8 +123,7 @@ fun WaysBuilderTrait.pedestrianWay(init: WayBuilder.() -> Unit) {
 }
 
 val graph = osmGraph {
-    pedestrianWay {
-        id = 1
+    pedestrianWay(1) {
         tags {
             "level" to "1"
         }
@@ -112,7 +146,7 @@ val graphFromFileInResource = osmGraph("path/in/resources.json")
 val graph2 = OverpassParser.parseJsonInputStream(inputStream)
 
 // expect the json node to contains the nodes, ways and relations at its root
-val graph3 = OverpassParser.parseJsonNode(inputStream)
+val graph3 = OverpassParser.parseJsonNode(jsonNode)
 ```
 
 ## Build and test

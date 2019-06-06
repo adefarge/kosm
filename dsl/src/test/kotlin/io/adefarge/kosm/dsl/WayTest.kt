@@ -1,5 +1,7 @@
 package io.adefarge.kosm.dsl
 
+import io.adefarge.kosm.core.node
+import io.adefarge.kosm.core.way
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
@@ -104,8 +106,8 @@ class WayTest {
         assertEquals(1, way.nodes.last().id)
         assertEquals(3, graph.nodes.size)
 
-        assertEquals("0", graph.nodes.first { it.id == 0L }.tags["node"])
-        assertEquals("1", graph.nodes.first { it.id == 1L }.tags["node"])
+        assertEquals("0", graph.node(0).tags["node"])
+        assertEquals("1", graph.node(1).tags["node"])
     }
 
     @Test
@@ -142,7 +144,7 @@ class WayTest {
 
         assertEquals(3, graph.ways.size)
         assertEquals(1, graph.ways.count { it.id == 1L })
-        val way1 = graph.ways.first { it.id == 1L }
+        val way1 = graph.way(1)
         assertEquals(mapOf("decl" to "1"), way1.tags)
 
         val anonymousWays = graph.ways.filter { it.id != 1L }

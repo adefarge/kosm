@@ -11,13 +11,8 @@ interface NodesBuilderTrait {
 
     fun registerNodeRef(ref: Ref<Node>) {}
 
-    fun node(id: Number, init: NodeBuilder.() -> Unit): Ref<Node> {
+    fun node(id: Number? = null, init: NodeBuilder.() -> Unit): Ref<Node> {
         return nodeFactory.getRef(id, init)
-            .also { registerNodeRef(it) }
-    }
-
-    fun node(init: NodeBuilder.() -> Unit): Ref<Node> {
-        return nodeFactory.getRef(init)
             .also { registerNodeRef(it) }
     }
 
