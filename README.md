@@ -2,7 +2,7 @@
 
 KOSM (read kay-OSM) is a toolkit for manipulating OpenStreetMap (OSM) data in kotlin.
 
-[![Build Status](https://travis-ci.org/adefarge/kosm.svg?branch=develop)](https://travis-ci.org/adefarge/kosm)
+[![Build Status](https://travis-ci.org/adefarge/kosm.svg?branch=master)](https://travis-ci.org/adefarge/kosm)
 
 ## Overview
 This project provides:
