@@ -1,5 +1,7 @@
 # Changelog
 
+## Unreleased
+
 ## [1.1.0] - 2019-06-06
 ### Deprecated
 - `WaysBuilderTrait` extensions moved to `io.adefarge.kosm.dsl.extensions`
