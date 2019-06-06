@@ -30,9 +30,15 @@ class WayTest {
     @Test
     fun `can instantiate a way with id`() {
         val graph = osmGraph { way(1) { } }
-
         val way = graph.ways.first()
+        assertEquals(1, way.id)
+    }
 
+    @Test
+    @Suppress("DEPRECATION")
+    fun `can still instantiate a way with id using the id in the Builder`() {
+        val graph = osmGraph { way { id = 1 } }
+        val way = graph.ways.first()
         assertEquals(1, way.id)
     }
 

@@ -5,6 +5,8 @@ interface Builder<out T> {
 }
 
 abstract class BuilderWithTagsAndId<out T> {
+    @Deprecated(message = "Specify the id in the dsl function instead")
+    var id: Number? = null
     protected var tags: MutableMap<String, String> = mutableMapOf()
 
     inline fun tags(init: TagsBuilder.() -> Unit) {

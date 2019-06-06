@@ -34,7 +34,14 @@ class RelationTest {
     @Test
     fun `can instantiate a relation with id`() {
         val graph = osmGraph { relation(1) {} }
+        val relation = graph.relations.first()
+        assertEquals(1, relation.id)
+    }
 
+    @Test
+    @Suppress("DEPRECATION")
+    fun `can still instantiate a relation with id using the id in the Builder`() {
+        val graph = osmGraph { relation { id = 1 } }
         val relation = graph.relations.first()
         assertEquals(1, relation.id)
     }

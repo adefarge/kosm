@@ -115,15 +115,15 @@ The DSL can easily be extended by using extension functions for
 
 Example:
 ```kotlin
-fun WaysBuilderTrait.pedestrianWay(init: WayBuilder.() -> Unit) {
-    way {
+fun WaysBuilderTrait.myPedestrianWay(id: Number? = null, init: WayBuilder.() -> Unit): Ref<Way> {
+    return way(id) {
         init()
         tags { "highway" to "pedestrian" }
     }
 }
 
 val graph = osmGraph {
-    pedestrianWay(1) {
+    myPedestrianWay(1) {
         tags {
             "level" to "1"
         }

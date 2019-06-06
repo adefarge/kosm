@@ -31,9 +31,15 @@ class NodeTest {
 
     @Test
     fun `can instantiate a node with id`() {
-        val graph = osmGraph {
-            node(1) {}
-        }
+        val graph = osmGraph { node(1) {} }
+        val node = graph.nodes.first()
+        assertEquals(1, node.id)
+    }
+
+    @Test
+    @Suppress("DEPRECATION")
+    fun `can still instantiate a node with id using the id in the Builder`() {
+        val graph = osmGraph { node { id = 1 } }
 
         val node = graph.nodes.first()
         assertEquals(1, node.id)

@@ -66,18 +66,26 @@ open class OsmFactory<T, B : BuilderWithTagsAndId<T>>(private val builderSupplie
         throw IllegalStateException("No object with id $id")
     }
 
+    @Suppress("DEPRECATION")
     fun getRef(id: Number?, init: B.() -> Unit): Ref<T> {
-        return if (id != null) {
-            val idAsLong = id.toLong()
-            val builder = buildersById.getOrPut(idAsLong, builderSupplier)
-            builder.apply(init)
+        val idAsLong = when (id) {
+            null -> {
+                val builder = builderSupplier.invoke().apply(init)
+                val builderId = builder.id
+                if (builderId == null) {
+                    anonymousBuilders += builder
+                    return BuilderRef(anonymousBuilders.size - 1, this)
+                }
 
-            IdRef(idAsLong, this)
-        } else {
-
-            anonymousBuilders += builderSupplier.invoke().apply(init)
-            BuilderRef(anonymousBuilders.size - 1, this)
+                builderId.toLong()
+            }
+            else -> id.toLong()
         }
+
+        val builder = buildersById.getOrPut(idAsLong, builderSupplier)
+        builder.apply(init)
+
+        return IdRef(idAsLong, this)
     }
 
     fun getRef(id: Number): Ref<T> {

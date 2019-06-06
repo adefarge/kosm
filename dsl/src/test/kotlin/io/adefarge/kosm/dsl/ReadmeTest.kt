@@ -1,7 +1,7 @@
 package io.adefarge.kosm.dsl
 
+import io.adefarge.kosm.core.Way
 import io.adefarge.kosm.dsl.extensions.nodesFromGrid
-import io.adefarge.kosm.dsl.extensions.pedestrianWay
 import org.junit.Test
 import kotlin.test.assertEquals
 
@@ -100,15 +100,15 @@ class ReadmeTest {
 
     @Test
     fun `ways extension functions`() {
-        fun WaysBuilderTrait.pedestrianWay(init: WayBuilder.() -> Unit) {
-            way {
+        fun WaysBuilderTrait.myPedestrianWay(id: Number? = null, init: WayBuilder.() -> Unit): Ref<Way> {
+            return way(id) {
                 init()
                 tags { "highway" to "pedestrian" }
             }
         }
 
         val graph = osmGraph {
-            pedestrianWay(1) {
+            myPedestrianWay(1) {
                 tags {
                     "level" to "1"
                 }
