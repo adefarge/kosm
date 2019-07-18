@@ -55,7 +55,7 @@ class NodesBuilderExtensionsTest {
 
         assertEquals(1, graph.nodes.size)
         assertEquals(3, graph.nodes.first().id)
-        assertCoordinateFromGrid(90, 10, graph.node(3))
+        assertCoordinateFromGrid(90, 20, graph.node(3))
     }
 
     @Test
@@ -153,13 +153,13 @@ class NodesBuilderExtensionsTest {
 
         assertEquals(7, graph.nodes.size)
         assertEquals(setOf(0, 1, 2, 4, 5, 6, 9), graph.nodes.map { it.id.toInt() }.toSet())
-        assertCoordinateFromGrid(0, 0, graph.node(1))
-        assertCoordinateFromGrid(30, 0, graph.node(2))
-        assertCoordinateFromGrid(60, 0, graph.node(4))
-        assertCoordinateFromGrid(80, 0, graph.node(0))
+        assertCoordinateFromGrid(0, 20, graph.node(1))
+        assertCoordinateFromGrid(30, 20, graph.node(2))
+        assertCoordinateFromGrid(60, 20, graph.node(4))
+        assertCoordinateFromGrid(80, 20, graph.node(0))
         assertCoordinateFromGrid(40, 10, graph.node(5))
-        assertCoordinateFromGrid(10, 20, graph.node(6))
-        assertCoordinateFromGrid(80, 20, graph.node(9))
+        assertCoordinateFromGrid(10, 0, graph.node(6))
+        assertCoordinateFromGrid(80, 0, graph.node(9))
     }
 
     @Test
@@ -176,7 +176,6 @@ class NodesBuilderExtensionsTest {
                     #   |   *   *   |
                     #   |     4     |
                     #   5 --------- 6
-                    #
                 """.trimMargin("#")
             }
 
@@ -194,13 +193,13 @@ class NodesBuilderExtensionsTest {
         assertEquals(listOf(0, 1, 2, 3, 0), graph.way(0).nodes.map { it.id.toInt() })
         assertEquals(listOf(0, 4, 3, 6, 5, 0), graph.way(1).nodes.map { it.id.toInt() })
 
-        assertCoordinateFromGrid(30, 0, graph.node(1))
-        assertCoordinateFromGrid(150, 0, graph.node(2))
-        assertCoordinateFromGrid(30, 30, graph.node(0))
-        assertCoordinateFromGrid(150, 30, graph.node(3))
-        assertCoordinateFromGrid(90, 60, graph.node(4))
-        assertCoordinateFromGrid(30, 70, graph.node(5))
-        assertCoordinateFromGrid(150, 70, graph.node(6))
+        assertCoordinateFromGrid(30, 70, graph.node(1))
+        assertCoordinateFromGrid(150, 70, graph.node(2))
+        assertCoordinateFromGrid(30, 40, graph.node(0))
+        assertCoordinateFromGrid(150, 40, graph.node(3))
+        assertCoordinateFromGrid(90, 10, graph.node(4))
+        assertCoordinateFromGrid(30, 0, graph.node(5))
+        assertCoordinateFromGrid(150, 0, graph.node(6))
     }
 
     private fun assertCoordinateFromGrid(x: Int, y: Int, node: Node) {

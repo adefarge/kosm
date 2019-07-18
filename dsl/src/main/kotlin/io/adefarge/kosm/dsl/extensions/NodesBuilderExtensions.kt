@@ -1,12 +1,16 @@
 package io.adefarge.kosm.dsl.extensions
 
 import io.adefarge.kosm.dsl.NodesBuilderTrait
+import kotlin.math.ceil
 
 fun NodesBuilderTrait.nodesFromGrid(cellWidth: Int = 5, cellHeight: Int = 10, gridSupplier: () -> String) {
     val grid = gridSupplier.invoke()
 
     val tokenBuilder = StringBuilder()
-    for ((y, line) in grid.lines().withIndex()) {
+    val lines = grid.lines()
+    val yAtEnd = lines.size - 1
+    for ((yFromEnd, line) in lines.withIndex()) {
+        val y = yAtEnd - yFromEnd
         var x = 0
         for (char in line) {
             when {
@@ -32,7 +36,7 @@ private fun NodesBuilderTrait.makeNodeAndReset(
     val token = tokenBuilder.toString()
     tokenBuilder.clear()
 
-    val meanX = endX - Math.ceil((token.length + 1) / 2.0).toInt()
+    val meanX = endX - ceil((token.length + 1) / 2.0).toInt()
     val id = token.toInt()
 
     node(id) {
