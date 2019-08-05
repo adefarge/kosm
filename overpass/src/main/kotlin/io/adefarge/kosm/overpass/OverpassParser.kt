@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.fasterxml.jackson.module.kotlin.treeToValue
+import io.adefarge.kosm.core.MutableRelation
 import io.adefarge.kosm.core.OsmGraph
-import io.adefarge.kosm.core.Relation
 import io.adefarge.kosm.core.Way
 import java.io.File
 import java.io.InputStream
@@ -72,7 +72,7 @@ object OverpassParser {
             .filterIsInstance<RelationWithId>()
             .filter { it.members.isNotEmpty() }
             .map { relation ->
-                Relation(
+                MutableRelation(
                     id = relation.id,
                     tags = relation.tags,
                     waysByRole = relation.members
@@ -98,9 +98,9 @@ object OverpassParser {
             .filterIsInstance<RelationWithId>()
             .filter { it.members.any { member -> member.type == "relation" } }
             .forEach { relation ->
-                val rel = relsById.getValue(relation.id)
+                val mutableRel = relsById.getValue(relation.id)
 
-                rel.relationsByRole = relation.members
+                mutableRel.relationsByRole = relation.members
                     .filter { it.type == "relation" }
                     .groupBy { it.role }
                     .map { (role, list) ->

@@ -4,7 +4,7 @@ import io.adefarge.kosm.core.Node
 import io.adefarge.kosm.core.Way
 
 interface WaysBuilderTrait {
-    val wayFactory: OsmFactory<Way, WayBuilder>
+    val wayFactory: WayFactory
 
     fun registerWayRef(ref: Ref<Way>) {}
 
@@ -19,9 +19,7 @@ interface WaysBuilderTrait {
     }
 }
 
-class WayBuilder(
-    private val nodeFactory: OsmFactory<Node, NodeBuilder>
-) : BuilderWithTagsAndId<Way>() {
+class WayBuilder(private val nodeFactory: NodeFactory) : BuilderWithTagsAndId<Way>() {
     private var nodes: List<Ref<Node>> = emptyList()
 
     fun nodes(vararg ids: Int) {
@@ -41,9 +39,7 @@ class WayBuilder(
     }
 }
 
-class InWayNodeBuilder(
-    override val nodeFactory: OsmFactory<Node, NodeBuilder>
-) : Builder<List<Ref<Node>>>,
+class InWayNodeBuilder(override val nodeFactory: NodeFactory) : Builder<List<Ref<Node>>>,
     NodesBuilderTrait {
     private val nodes = mutableListOf<Ref<Node>>()
 

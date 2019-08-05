@@ -7,7 +7,7 @@ import kotlin.math.atan
 import kotlin.random.asKotlinRandom
 
 interface NodesBuilderTrait {
-    val nodeFactory: OsmFactory<Node, NodeBuilder>
+    val nodeFactory: NodeFactory
 
     fun registerNodeRef(ref: Ref<Node>) {}
 

@@ -16,7 +16,7 @@ fun node(init: NodeBuilder.() -> Unit): Node {
 }
 
 fun way(init: WayBuilder.() -> Unit): Way {
-    val nodeFactory = NodeFactory(builderSupplier = { NodeBuilder() })
+    val nodeFactory = NodeFactory()
 
     return WayBuilder(nodeFactory)
         .apply(init)
@@ -24,18 +24,19 @@ fun way(init: WayBuilder.() -> Unit): Way {
 }
 
 fun relation(init: RelationBuilder.() -> Unit): Relation {
-    val nodeFactory = NodeFactory(builderSupplier = { NodeBuilder() })
-    val wayFactory = OsmFactory(builderSupplier = { WayBuilder(nodeFactory) })
+    val nodeFactory = NodeFactory()
+    val wayFactory = WayFactory(nodeFactory)
+    val relationFactory = RelationFactory(nodeFactory, wayFactory)
 
-    return RelationBuilder(nodeFactory, wayFactory)
+    return RelationBuilder(nodeFactory, wayFactory, relationFactory)
         .apply(init)
         .build(0)
 }
 
 class OsmGraphBuilder : Builder<OsmGraph>, WaysBuilderTrait, NodesBuilderTrait, RelationsBuilderTrait {
-    override val nodeFactory = NodeFactory(builderSupplier = { NodeBuilder() })
-    override val wayFactory = OsmFactory(builderSupplier = { WayBuilder(nodeFactory) })
-    override val relationFactory = OsmFactory(builderSupplier = { RelationBuilder(nodeFactory, wayFactory) })
+    override val nodeFactory = NodeFactory()
+    override val wayFactory = WayFactory(nodeFactory)
+    override val relationFactory = RelationFactory(nodeFactory, wayFactory)
 
     override fun build(): OsmGraph {
         nodeFactory.ensureAllIsGenerated()

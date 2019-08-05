@@ -1,6 +1,8 @@
 package io.adefarge.kosm.dsl
 
 import io.adefarge.kosm.core.Node
+import io.adefarge.kosm.core.Relation
+import io.adefarge.kosm.core.Way
 
 sealed class Ref<T>(protected val factory: OsmFactory<T, *>) {
     abstract fun deref(): T
@@ -14,7 +16,12 @@ private class IdRef<T>(private val id: Long, factory: OsmFactory<T, *>) : Ref<T>
     override fun deref(): T = factory.deref(id)
 }
 
-open class OsmFactory<T, B : BuilderWithTagsAndId<T>>(private val builderSupplier: () -> B) {
+abstract class OsmFactory<T, B : BuilderWithTagsAndId<T>> internal constructor() {
+    internal constructor(builderSupplier: () -> B) : this() {
+        this.builderSupplier = builderSupplier
+    }
+
+    protected lateinit var builderSupplier: () -> B
     protected val objects = mutableMapOf<Long, T>()
     private val buildersById = mutableMapOf<Long, B>()
     private val anonymousBuilders = mutableListOf<B>()
@@ -42,7 +49,8 @@ open class OsmFactory<T, B : BuilderWithTagsAndId<T>>(private val builderSupplie
             ?: throw IllegalStateException("No anonymous builder with such index $index")
 
         val id = generateId()
-        val obj = builder.build(id)
+        val obj = build(builder, id, isAnonymous = true)
+
         objects[id] = obj
         anonymousIdCorrespondenceTable[index] = id
         return obj
@@ -57,10 +65,13 @@ open class OsmFactory<T, B : BuilderWithTagsAndId<T>>(private val builderSupplie
     private fun generate(id: Long): T? {
         val builder = buildersById[id] ?: return null
 
-        val obj = builder.build(id)
+        val obj = build(builder, id, isAnonymous = false)
+
         objects[id] = obj
         return obj
     }
+
+    protected open fun build(builder: B, id: Long, isAnonymous: Boolean): T = builder.build(id)
 
     protected open fun fallbackOnMiss(id: Long): T {
         throw IllegalStateException("No object with id $id")
@@ -111,8 +122,38 @@ open class OsmFactory<T, B : BuilderWithTagsAndId<T>>(private val builderSupplie
     }
 }
 
-class NodeFactory<B : BuilderWithTagsAndId<Node>>(builderSupplier: () -> B) : OsmFactory<Node, B>(builderSupplier) {
+class NodeFactory : OsmFactory<Node, NodeBuilder>({ NodeBuilder() }) {
     override fun fallbackOnMiss(id: Long): Node {
         return NodeBuilder().build(id).also { objects[id] = it }
+    }
+}
+
+class WayFactory(nodeFactory: NodeFactory) : OsmFactory<Way, WayBuilder>({ WayBuilder(nodeFactory) })
+
+class RelationFactory(
+    nodeFactory: NodeFactory,
+    wayFactory: WayFactory
+) : OsmFactory<Relation, RelationBuilder>() {
+    init {
+        builderSupplier = { RelationBuilder(nodeFactory, wayFactory, this) }
+    }
+
+    private val relationsBeingBuilt = mutableSetOf<RelationBuilder>()
+
+    override fun build(builder: RelationBuilder, id: Long, isAnonymous: Boolean): Relation {
+        if (builder in relationsBeingBuilt) {
+            val message = if (!isAnonymous) {
+                "A circular dependency was detected while building the relation $id"
+            } else {
+                "A circular dependency was detected while building an anonymous relation"
+            }
+            throw IllegalStateException(message)
+        }
+
+        relationsBeingBuilt += builder
+        val result = super.build(builder, id, isAnonymous)
+        relationsBeingBuilt -= builder
+
+        return result
     }
 }

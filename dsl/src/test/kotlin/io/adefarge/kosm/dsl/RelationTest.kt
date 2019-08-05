@@ -1,6 +1,7 @@
 package io.adefarge.kosm.dsl
 
 import io.adefarge.kosm.core.relation
+import io.adefarge.kosm.core.relationOrNull
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
@@ -173,5 +174,43 @@ class RelationTest {
         val anon2 = anonymousRelations.last()
         assertEquals(1, anon2.tags.size)
         assertNotEquals(anon1.tags, anon2.tags)
+    }
+
+    @Test
+    fun `can declare relation in a relation`() {
+        val graph = osmGraph {
+            relation(0) { tags { "id" to "0" } }
+            relation(1) {
+                relation(0)
+                tags { "id" to "1" }
+            }
+        }
+
+        assertEquals(2, graph.relations.size)
+        val relation0 = graph.relationOrNull(0)
+        assertNotNull(relation0)
+        assertEquals("0", relation0.tags["id"])
+        val relation1 = graph.relationOrNull(1)
+        assertNotNull(relation1)
+        assertEquals("1", relation1.tags["id"])
+
+        val relationsInDefaultRole = relation1.relationsByRole[""]
+        assertNotNull(relationsInDefaultRole)
+        assertEquals(1, relationsInDefaultRole.size)
+        assertEquals(relation0, relationsInDefaultRole.first())
+    }
+
+    @Test(expected = IllegalStateException::class)
+    fun `cannot declare a relation with circular dependency`() {
+        osmGraph {
+            relation(0) {
+                relation(1)
+                tags { "id" to "0" }
+            }
+            relation(1) {
+                relation(0)
+                tags { "id" to "1" }
+            }
+        }
     }
 }
