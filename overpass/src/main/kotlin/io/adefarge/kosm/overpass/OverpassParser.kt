@@ -96,7 +96,6 @@ object OverpassParser {
 
         elements.asSequence()
             .filterIsInstance<RelationWithId>()
-            .filter { it.members.any { member -> member.type == "relation" } }
             .forEach { relation ->
                 val mutableRel = relsById.getValue(relation.id)
 
